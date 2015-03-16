@@ -65,6 +65,7 @@ while True:
             if notifier.check_events():
                 notifier.read_events()
     except Reload:
+        notifier.stop()
         pass
     except KeyboardInterrupt:
         notifier.stop()

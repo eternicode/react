@@ -13,10 +13,6 @@ from pyinotify import (
 )
 
 
-class PatternAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, fnmatch.translate(values))
-
 parser = argparse.ArgumentParser(
     description="Launch a script if specified files change."
 )
@@ -24,24 +20,36 @@ parser.add_argument(
     "directory", help="the directory which is recursively monitored"
 )
 
-group = parser.add_mutually_exclusive_group()
-group.add_argument(
-    "-r", "--regex",
-    required=False,
-    default=".*",
+parser.add_argument(
+    "-i", "--include",
+    dest="include_pattern", action="append",
     help=(
-        "Files only trigger the reaction if their name matches this regular "
-        "expression"
+        "Only trigger the reaction if the triggering file's full path matches "
+        "this shell pattern"
     )
 )
-group.add_argument(
-    "-p", "--pattern",
-    required=False,
-    dest="regex",
-    action=PatternAction,
+parser.add_argument(
+    "-e", "--exclude",
+    dest="exclude_pattern", action="append",
     help=(
-        "Files only trigger the reaction if their name matches this shell "
-        "pattern"
+        "Do not trigger the reaction if the triggering file's full path "
+        "matches this shell pattern"
+    )
+)
+parser.add_argument(
+    "-r", "--include-regex",
+    action="append",
+    help=(
+        "Only trigger the reaction if the triggering file's full path matches "
+        "this regular expression"
+    )
+)
+parser.add_argument(
+    "-x", "--exclude-regex",
+    action="append",
+    help=(
+        "Do not trigger the reaction if the triggering file's full path "
+        "matches this regular expression"
     )
 )
 
@@ -61,7 +69,24 @@ class Reload(Exception):
 
 class Process(ProcessEvent):
     def __init__(self,  options):
-        options.regex = re.compile(options.regex)
+        options.include = []
+        if options.include_pattern:
+            options.include += [
+                re.compile(fnmatch.translate(include))
+                for include in options.include_pattern
+            ]
+        if options.include_regex:
+            options.include += map(re.compile, options.include)
+
+        options.exclude = []
+        if options.exclude_pattern:
+            options.exclude += [
+                re.compile(fnmatch.translate(exclude))
+                for exclude in options.exclude_pattern
+            ]
+        if options.exclude_regex:
+            options.exclude += map(re.compile, options.exclude)
+
         self.o = options
 
     def process_IN_CREATE(self, event):
@@ -74,7 +99,16 @@ class Process(ProcessEvent):
 
     def handle(self, event):
         target = os.path.join(event.path, event.name)
-        if self.o.regex.match(target):
+        handle = True
+        if self.o.include:
+            handle &= any(
+                include.search(target) for include in self.o.include
+            )
+        if self.o.exclude:
+            handle &= not any(
+                exclude.search(target) for exclude in self.o.exclude
+            )
+        if handle:
             args = self.o.script.replace("$f", target).split()
             print "executing script: " + " ".join(args)
             subprocess.call(args)

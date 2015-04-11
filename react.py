@@ -11,6 +11,7 @@ from pyinotify import (
     WatchManager, ProcessEvent, Notifier,
     IN_DELETE, IN_CREATE, IN_CLOSE_WRITE, IN_MOVED_TO
 )
+from time import time
 
 
 parser = argparse.ArgumentParser(
@@ -57,6 +58,11 @@ parser.add_argument(
     )
 )
 parser.add_argument(
+    "-L", "--limit",
+    type=int,
+    help="Rate-limit calls to COMMAND to one every LIMIT seconds"
+)
+parser.add_argument(
     "directory", help="The directory which is recursively monitored"
 )
 parser.add_argument("command", help="Command to execute upon reaction")
@@ -94,6 +100,7 @@ class Process(ProcessEvent):
             options.exclude += map(re.compile, options.exclude)
 
         self.o = options
+        self.trigger_timestamp = 0
 
     def process_IN_CREATE(self, event):
         target = os.path.join(event.path, event.name)
@@ -115,6 +122,11 @@ class Process(ProcessEvent):
                 exclude.search(target) for exclude in self.o.exclude
             )
         if handle:
+            ts = time()
+            if self.o.limit and ts - self.trigger_timestamp < self.o.limit:
+                return
+            self.trigger_timestamp = ts
+
             args = self.o.command.replace(self.o.replace_str, target).split()
             print "executing script: " + " ".join(args)
             subprocess.call(args)

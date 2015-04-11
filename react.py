@@ -17,10 +17,6 @@ parser = argparse.ArgumentParser(
     description="Launch a script if specified files change."
 )
 parser.add_argument(
-    "directory", help="the directory which is recursively monitored"
-)
-
-parser.add_argument(
     "-i", "--include",
     dest="include_pattern", action="append",
     help=(
@@ -52,8 +48,10 @@ parser.add_argument(
         "matches this regular expression"
     )
 )
-
-parser.add_argument("script", help="the script that is executed upon reaction")
+parser.add_argument(
+    "directory", help="The directory which is recursively monitored"
+)
+parser.add_argument("command", help="Command to execute upon reaction")
 
 
 class Options:
@@ -109,7 +107,7 @@ class Process(ProcessEvent):
                 exclude.search(target) for exclude in self.o.exclude
             )
         if handle:
-            args = self.o.script.replace("$f", target).split()
+            args = self.o.command.replace("$f", target).split()
             print "executing script: " + " ".join(args)
             subprocess.call(args)
             print "------------------------"

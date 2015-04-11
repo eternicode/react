@@ -76,10 +76,9 @@ class Process(ProcessEvent):
         target = os.path.join(event.path, event.name)
         if self.regex.match(target):
             args = self.script.replace("$f", target).split()
-            os.system("clear")
-            sys.stdout.write("executing script: " + " ".join(args) + "\n")
+            print "executing script: " + " ".join(args)
             subprocess.call(args)
-            sys.stdout.write("------------------------\n")
+            print "------------------------"
     process_IN_CLOSE_WRITE = handle
     process_IN_MOVED_TO = handle
 

@@ -63,6 +63,10 @@ parser.add_argument(
     help="Rate-limit calls to COMMAND to one every LIMIT seconds"
 )
 parser.add_argument(
+    "-q", "--quiet",
+    action="store_true", help="Suppress standard output"
+)
+parser.add_argument(
     "directory", help="The directory which is recursively monitored"
 )
 parser.add_argument("command", help="Command to execute upon reaction")
@@ -128,9 +132,12 @@ class Process(ProcessEvent):
             self.trigger_timestamp = ts
 
             args = self.o.command.replace(self.o.replace_str, target).split()
-            print "executing script: " + " ".join(args)
-            subprocess.call(args)
-            print "------------------------"
+            if self.o.quiet:
+                subprocess.call(args, stdout=subprocess.PIPE)
+            else:
+                print "executing script: " + " ".join(args)
+                subprocess.call(args)
+                print "------------------------"
     process_IN_CLOSE_WRITE = handle
     process_IN_MOVED_TO = handle
 

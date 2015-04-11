@@ -8,24 +8,24 @@
 
 ## Usage
 
-See "react --help"
+See `react --help`
 
 ### Hello World
-`react.py /tmp -p '*.txt' 'echo $f'`
+`react.py /tmp -i '*.txt' 'echo {}'`
 
 This is a simple test. Execute the above command and create and modify
 directories and files in /tmp. For every file ending with .txt its full path is
 printed on the console every time this file is created or changed.
 
 ### Executing test suites
-`react.py ../ -p '*.hs' ./runTests`
+`react.py ../ -i '*.hs' ./runTests`
 
 The main motivation of this tool was to be able to trigger the execution of a
 test suite each time a source file of the project is modified. This speeds up
 my vim-based software development a lot.
 
 ### Setting file ACL entries
-`react.py /srv/www/team 'setfacl -m g:team:rwx $f'`
+`react.py /srv/www/team 'setfacl -m g:team:rwx {}'`
 
 A major disadvantage of default [file ACLs](http://linux.die.net/man/1/setfacl)
 is that it only reacts on newly created files. If you move a file into a
@@ -36,4 +36,6 @@ management will break. With react you can circumvent this problem.
 ## Information
 
  * Licence: [GPL 2.0](http://www.gnu.org/licenses/gpl-2.0.html)
- * Author: Alexander Bernauer (alex@copton.net)
+ * Authors:
+   * Alexander Bernauer (alex@copton.net)
+   * Andrew Rowls (andrew@eternicode.com)

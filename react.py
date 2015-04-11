@@ -49,6 +49,14 @@ parser.add_argument(
     )
 )
 parser.add_argument(
+    "-I", "--replace-str",
+    default="{}",
+    help=(
+        "Replace occurrences of REPLACE_STR in COMMAND with the triggering "
+        "file's full path.  Default: {}"
+    )
+)
+parser.add_argument(
     "directory", help="The directory which is recursively monitored"
 )
 parser.add_argument("command", help="Command to execute upon reaction")
@@ -107,7 +115,7 @@ class Process(ProcessEvent):
                 exclude.search(target) for exclude in self.o.exclude
             )
         if handle:
-            args = self.o.command.replace("$f", target).split()
+            args = self.o.command.replace(self.o.replace_str, target).split()
             print "executing script: " + " ".join(args)
             subprocess.call(args)
             print "------------------------"

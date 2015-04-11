@@ -73,7 +73,10 @@ parser.add_argument("command", help="Command to execute upon reaction")
 
 
 class Options:
-    __slots__ = [action.dest for action in parser._actions]
+    __slots__ = (
+        [action.dest for action in parser._actions] +
+        ['include', 'exclude']
+    )
 
 options = Options()
 args = parser.parse_args(namespace=options)
@@ -135,9 +138,9 @@ class Process(ProcessEvent):
             if self.o.quiet:
                 subprocess.call(args, stdout=subprocess.PIPE)
             else:
-                print "executing script: " + " ".join(args)
+                print("executing script: " + " ".join(args))
                 subprocess.call(args)
-                print "------------------------"
+                print("------------------------")
     process_IN_CLOSE_WRITE = handle
     process_IN_MOVED_TO = handle
 

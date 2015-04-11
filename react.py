@@ -61,8 +61,8 @@ class Reload(Exception):
 
 class Process(ProcessEvent):
     def __init__(self,  options):
-        self.regex = re.compile(options.regex)
-        self.script = options.script
+        options.regex = re.compile(options.regex)
+        self.o = options
 
     def process_IN_CREATE(self, event):
         target = os.path.join(event.path, event.name)
@@ -74,8 +74,8 @@ class Process(ProcessEvent):
 
     def handle(self, event):
         target = os.path.join(event.path, event.name)
-        if self.regex.match(target):
-            args = self.script.replace("$f", target).split()
+        if self.o.regex.match(target):
+            args = self.o.script.replace("$f", target).split()
             print "executing script: " + " ".join(args)
             subprocess.call(args)
             print "------------------------"

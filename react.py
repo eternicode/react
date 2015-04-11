@@ -49,7 +49,7 @@ parser.add_argument("script", help="the script that is executed upon reaction")
 
 
 class Options:
-    __slots__ = ["directory", "regex", "script"]
+    __slots__ = [action.dest for action in parser._actions]
 
 options = Options()
 args = parser.parse_args(namespace=options)

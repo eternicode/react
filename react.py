@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pyinotify import (
     WatchManager, ProcessEvent, Notifier,
-    IN_DELETE, IN_CREATE, IN_CLOSE_WRITE,
+    IN_DELETE, IN_CREATE, IN_CLOSE_WRITE, IN_MOVED_TO
 )
 
 
@@ -72,7 +72,7 @@ class Process(ProcessEvent):
     def process_IN_DELETE(self, event):
         raise Reload()
 
-    def process_IN_CLOSE_WRITE(self, event):
+    def handle(self, event):
         target = os.path.join(event.path, event.name)
         if self.regex.match(target):
             args = self.script.replace("$f", target).split()
@@ -80,12 +80,14 @@ class Process(ProcessEvent):
             sys.stdout.write("executing script: " + " ".join(args) + "\n")
             subprocess.call(args)
             sys.stdout.write("------------------------\n")
+    process_IN_CLOSE_WRITE = handle
+    process_IN_MOVED_TO = handle
 
 while True:
     wm = WatchManager()
     process = Process(options)
     notifier = Notifier(wm, process)
-    mask = IN_DELETE | IN_CREATE | IN_CLOSE_WRITE
+    mask = IN_DELETE | IN_CREATE | IN_CLOSE_WRITE | IN_MOVED_TO
     wdd = wm.add_watch(options.directory, mask, rec=True)
     try:
         while True:
